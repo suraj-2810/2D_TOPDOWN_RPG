@@ -2,7 +2,9 @@
 
 A simple 2D top-down RPG game built with Java Swing. This project was created to practice game development fundamentals, including animations, player input, and state management.
 
-![Screenshot of the game] ## Features
+<img width="801" height="571" alt="current state" src="https://github.com/user-attachments/assets/ea1c4e41-8d01-4c2b-b175-f9347e751285" />
+
+## Features
 
 * **Player Movement:** Full 8-directional movement.
 * **Animations:** Smooth, sprite-based animations for idle, running, and attacking.
