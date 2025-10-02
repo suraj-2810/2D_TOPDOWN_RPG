@@ -32,9 +32,9 @@ You must have a Java Development Kit (JDK) installed.
 
 ## Controls
 
-* **Move Up:** `W`
-* **Move Down:** `S`
-* **Move Left:** `A`
-* **Move Right:** `D`
+* **Move Up:** `W,UP`
+* **Move Down:** `S,DOWN`
+* **Move Left:** `A,LEFT`
+* **Move Right:** `D,RIGHT`
 * **Attack 1:** `J`
 * **Attack 2:** `K`
