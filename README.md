@@ -17,7 +17,7 @@ You must have a Java Development Kit (JDK) installed.
 
 1.  Clone the repository to your local machine:
     ```bash
-    git clone <your-repository-url>
+    git clone https://github.com/suraj-2810/2D_TOPDOWN_RPG
     ```
 2.  Navigate to the project directory:
     ```bash
