@@ -31,10 +31,10 @@ public class Enemy {
 
     private void loadAnimations() {
         try {
-            BufferedImage flyingSheet = ImageIO.read(getClass().getResource("assets/demon/FLYING.png"));
+            BufferedImage flyingSheet = ImageIO.read(getClass().getResource("assets/FLYING.png"));
             flyingAnim = new Animation(sliceSpriteSheet(flyingSheet, 4), 10, true);
 
-            BufferedImage attackSheet = ImageIO.read(getClass().getResource("assets/demon/ATTACK.png"));
+            BufferedImage attackSheet = ImageIO.read(getClass().getResource("assets/ATTACK.png"));
             attackAnim = new Animation(sliceSpriteSheet(attackSheet, 8), 12, false);
         } catch (IOException e) {
             e.printStackTrace();
@@ -51,9 +51,11 @@ public class Enemy {
 
     public void update(Player player, List<Fireball> fireballs) {
         if (state == State.ATTACK) {
+            // Update animation and check if finished
             if (currentAnim.isFinished()) {
                 state = State.FLYING;
                 currentAnim = flyingAnim;
+                currentAnim.reset(); // Reset flying animation
             }
         } else if (state == State.FLYING) {
             int playerX = player.getX();
@@ -68,13 +70,19 @@ public class Enemy {
                 currentAnim = attackAnim;
                 currentAnim.reset();
                 
-                fireballs.add(new Fireball(x + SPRITE_WIDTH / 2, y + SPRITE_HEIGHT / 2, playerX, playerY, 6));
+                // Only add fireball if list isn't getting too large
+                if (fireballs.size() < 50) {
+                    fireballs.add(new Fireball(x + SPRITE_WIDTH / 2, y + SPRITE_HEIGHT / 2, playerX, playerY, 6));
+                }
                 lastShotTime = currentTime;
             }
         }
 
         currentAnim.update();
     }
+    
+    public int getX() { return x; }
+    public int getY() { return y; }
 
     public void draw(Graphics2D g2) {
         g2.drawImage(currentAnim.getCurrentFrame(), x, y, SPRITE_WIDTH, SPRITE_HEIGHT, null);
