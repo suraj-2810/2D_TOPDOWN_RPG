@@ -2,40 +2,41 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.List;
 
 public class Enemy {
-    enum State {FLYING,ATTACK}//possible states
+    enum State {FLYING, ATTACK}
     private State state = State.FLYING;
 
     private int x, y, speed;
-    private Animation  flyingAnim, attackAnim, currentAnim;//animation object
+    private Animation flyingAnim, attackAnim, currentAnim;
 
     private static final int FRAME_WIDTH = 80;
     private static final int FRAME_HEIGHT = 128;
     private static final int SPRITE_WIDTH = 80;
     private static final int SPRITE_HEIGHT = 128;
 
-    private long last_shot_time;
-    private final long shootcooldown = 2500;//2.5s
+    private long lastShotTime;
+    private final long shootCooldown = 2500; // 2.5s
 
     public Enemy(int startX, int startY, int speed) {
         this.x = startX;
         this.y = startY;
         this.speed = speed;
-        this.last_shot_time = System.currentTimeMillis();
+        this.lastShotTime = System.currentTimeMillis();
 
         loadAnimations();
         this.currentAnim = flyingAnim;
     }
 
     private void loadAnimations() {
-        try{
-            BufferedImage flyingsheet = ImageIO.read(getClass().getResource("assets/demon/FLYING.png"));
-            flyingAnim = new Animation(spliceSpriteSheet(flyingsheet, 4), 10, true);
+        try {
+            BufferedImage flyingSheet = ImageIO.read(getClass().getResource("assets/demon/FLYING.png"));
+            flyingAnim = new Animation(sliceSpriteSheet(flyingSheet, 4), 10, true);
 
-            BufferedImage attacksheet = ImageIO.read(getClass().getResource("assets/demon/ATTACK.png"));
-            flyingAnim = new Animation(spliceSpriteSheet(attacksheet, 8), 12, false);
-        }catch (IOException e) {
+            BufferedImage attackSheet = ImageIO.read(getClass().getResource("assets/demon/ATTACK.png"));
+            attackAnim = new Animation(sliceSpriteSheet(attackSheet, 8), 12, false);
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -49,15 +50,12 @@ public class Enemy {
     }
 
     public void update(Player player, List<Fireball> fireballs) {
-
         if (state == State.ATTACK) {
-
             if (currentAnim.isFinished()) {
                 state = State.FLYING;
                 currentAnim = flyingAnim;
             }
         } else if (state == State.FLYING) {
-
             int playerX = player.getX();
             int playerY = player.getY();
             double angle = Math.atan2(playerY - y, playerX - x);
@@ -68,21 +66,21 @@ public class Enemy {
             if (currentTime - lastShotTime > shootCooldown) {
                 state = State.ATTACK;
                 currentAnim = attackAnim;
-                currentAnim.reset(); // Start the animation from the first frame
+                currentAnim.reset();
                 
                 fireballs.add(new Fireball(x + SPRITE_WIDTH / 2, y + SPRITE_HEIGHT / 2, playerX, playerY, 6));
                 lastShotTime = currentTime;
             }
         }
 
-        currentAnim.update();//animation update
+        currentAnim.update();
     }
 
     public void draw(Graphics2D g2) {
         g2.drawImage(currentAnim.getCurrentFrame(), x, y, SPRITE_WIDTH, SPRITE_HEIGHT, null);
     }
 
-    public Rectangle getBounds() {//collision
+    public Rectangle getBounds() {
         return new Rectangle(x, y, SPRITE_WIDTH, SPRITE_HEIGHT);
     }
 }
