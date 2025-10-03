@@ -77,6 +77,8 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Random;
 
 public class GamePanel extends JPanel implements Runnable, KeyListener {
     private Thread gameThread;
@@ -85,6 +87,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     private Player player;
     private TileManager tileManager;
     private boolean upPressed, downPressed, leftPressed, rightPressed, attack1Pressed, attack2Pressed;
+
+    private List<Enemy> enemies = new ArrayList<>();
+    private List<Fireball> fireballs = new ArrayList<>();
+    private Random random = new Random();
+
+    private long lastSpawnTime;//spawner
+    private final long SPAWN_INTERVAL = 3000; 
+    private final int SPAWN_RADIUS = 250;     
 
     public GamePanel() {
         setBackground(new Color(124, 252, 0));
@@ -122,6 +132,38 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
     private void update() {
         player.update(upPressed, downPressed, leftPressed, rightPressed, attack1Pressed, attack2Pressed);
+        
+        spawnEnemies();
+
+        for (Enemy enemy : enemies) {
+            enemy.update(player, fireballs);
+        }
+
+        Iterator<Fireball> fireballIterator = fireballs.iterator();
+        while (fireballIterator.hasNext()) {
+            Fireball fireball = fireballIterator.next();
+            fireball.update();
+            if (fireball.isOffScreen(SCREEN_WIDTH, SCREEN_HEIGHT)) {
+                fireballIterator.remove(); 
+            }
+        }
+    }
+
+    private void spawnEnemies() {
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastSpawnTime > SPAWN_INTERVAL) {
+            int spawnX, spawnY;
+            double distance;
+
+            do {
+                spawnX = random.nextInt(SCREEN_WIDTH);
+                spawnY = random.nextInt(SCREEN_HEIGHT);
+                distance = Math.sqrt(Math.pow(spawnX - player.getX(), 2) + Math.pow(spawnY - player.getY(), 2));
+            } while (distance < SPAWN_RADIUS);
+            
+            enemies.add(new Enemy(spawnX, spawnY, 2)); // 2 is enemy speed
+            lastSpawnTime = currentTime;
+        }
     }
 
     protected void paintComponent(Graphics g) {
@@ -131,6 +173,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         tileManager.draw(g2);
 
         player.draw(g2);
+
+        for (Enemy enemy : enemies) {
+            enemy.draw(g2);
+        }
+
+        for (Fireball fireball : fireballs) {
+            fireball.draw(g2);
+        }
 
         g2.dispose();
     }

@@ -103,19 +103,22 @@ public class Player {
         loadAnimations();
         currentAnim = idleAnim;
     }
+    
+    public int getX() { return x + SPRITE_WIDTH / 2; } // Return center of player
+    public int getY() { return y + SPRITE_HEIGHT / 2; }
 
     private void loadAnimations() {
         try {
-            BufferedImage idleSheet = ImageIO.read(getClass().getResource("assets/Warrior_Idle.png"));
+            BufferedImage idleSheet = ImageIO.read(getClass().getResource("assets/Warrior/Warrior_Idle.png"));
             idleAnim = new Animation(sliceSpriteSheet(idleSheet, 8), 10, true);
 
-            BufferedImage runSheet = ImageIO.read(getClass().getResource("assets/Warrior_Run.png"));
+            BufferedImage runSheet = ImageIO.read(getClass().getResource("assets/Warrior/Warrior_Run.png"));
             runAnim = new Animation(sliceSpriteSheet(runSheet, 6), 12, true);
 
-            BufferedImage atk1Sheet = ImageIO.read(getClass().getResource("assets/Warrior_Attack1.png"));
+            BufferedImage atk1Sheet = ImageIO.read(getClass().getResource("assets/Warrior/Warrior_Attack1.png"));
             attack1Anim = new Animation(sliceSpriteSheet(atk1Sheet, 4), 8, false);
 
-            BufferedImage atk2Sheet = ImageIO.read(getClass().getResource("assets/Warrior_Attack2.png"));
+            BufferedImage atk2Sheet = ImageIO.read(getClass().getResource("assets/Warrior/Warrior_Attack2.png"));
             attack2Anim = new Animation(sliceSpriteSheet(atk2Sheet, 4), 8, false);
 
         } catch (IOException e) {
