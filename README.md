@@ -2,7 +2,7 @@
 
 A simple 2D top-down RPG game built with Java Swing. This project was created to practice game development fundamentals, including animations, player input, and state management.
 
-<img width="801" height="571" alt="current state" src="/Users/dauntless/Desktop/current state.png" />
+<img width="801" height="571" alt="current state" src="https://github.com/user-attachments/assets/074b71af-9862-44d2-a420-6a45d2bbbc89" />
 
 ## Features
 
