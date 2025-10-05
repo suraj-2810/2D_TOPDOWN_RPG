@@ -10,6 +10,9 @@ A simple 2D top-down RPG game built with Java Swing. This project was created to
 * **Animations:** Smooth, sprite-based animations for idle, running, and attacking.
 * **Combat:** Two distinct attack animations triggered by user input.
 * **Tile-based World:** A simple, tileable grass background.
+* **Enemy:** Automated spawning flying eneny that folow the player.
+* **Projectile System:** Enemies fire fireballs at the player. Basic collision detection.
+* **Debug info:** Display of the current enemy count, fireball count, and player coordinates.
 
 ## How to Compile and Run
 
