@@ -24,6 +24,12 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     private long lastSpawnTime;
     private final long SPAWN_INTERVAL = 3000; 
     private final int SPAWN_RADIUS = 250;
+    
+    // Health bar properties
+    private static final int HEALTH_BAR_HEIGHT = 20;
+    private static final int HEALTH_BAR_Y = 10;
+    private static final int HEALTH_BAR_X = 10;
+    private static final int HEALTH_BAR_WIDTH = 200;
 
     public GamePanel() {
         System.out.println("GamePanel: Constructor starting");
@@ -134,6 +140,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             );
             if (fireball.getBounds().intersects(playerBounds)) {
                 shouldRemove = true;
+                player.takeDamage(10); // Deal 10 damage to player
                 System.out.println("Player hit by fireball!");
             }
             
@@ -203,14 +210,18 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             for (Fireball fireball : fireballs) {
                 fireball.draw(g2);
             }
+
+            // Draw health bar
+            if (player != null) {
+                drawHealthBar(g2);
+            }
             
             // Debug info
             g2.setColor(Color.WHITE);
-            g2.drawString("Enemies: " + enemies.size(), 10, 20);
-            g2.drawString("Fireballs: " + fireballs.size(), 10, 40);
-            if (player != null) {
-                g2.drawString("Player: (" + player.getX() + ", " + player.getY() + ")", 10, 60);
-            }
+            g2.drawString("Enemies: " + enemies.size(), 10, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 20);
+            g2.drawString("Fireballs: " + fireballs.size(), 10, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 40);
+            g2.drawString("Player: (" + player.getX() + ", " + player.getY() + ")", 10, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 60);
+            g2.drawString("Health: " + player.getCurrentHealth() + "/" + player.getMaxHealth(), 10, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 80);
 
         } catch (Exception e) {
             System.err.println("GamePanel: Error in paint: " + e.getMessage());
@@ -218,6 +229,26 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         }
 
         g2.dispose();
+    }
+
+    private void drawHealthBar(Graphics2D g) {
+        // Calculate health ratio
+        double healthRatio = (double) player.getCurrentHealth() / player.getMaxHealth();
+        
+        // Calculate the width of the green health fill
+        int fillWidth = (int) (HEALTH_BAR_WIDTH * healthRatio);
+        
+        // Draw background (red - representing lost health)
+        g.setColor(Color.RED);
+        g.fillRect(HEALTH_BAR_X, HEALTH_BAR_Y, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT);
+        
+        // Draw foreground (green - representing current health)
+        g.setColor(Color.GREEN);
+        g.fillRect(HEALTH_BAR_X, HEALTH_BAR_Y, fillWidth, HEALTH_BAR_HEIGHT);
+        
+        // Draw border
+        g.setColor(Color.BLACK);
+        g.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT);
     }
 
     public void keyPressed(KeyEvent e) {
