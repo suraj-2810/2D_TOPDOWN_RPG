@@ -6,21 +6,21 @@ import java.util.List;
 
 public class Enemy {
     enum State {FLYING, ATTACK, IDLE}
-    private State state = State.FLYING;//starting at flying
+    private State state = State.FLYING; // initial state
 
-    private int x, y, speed;
-    private Animation flyingAnim, attackAnim, currentAnim;//animation object
+    private int x, y, speed; // position and movement
+    private Animation flyingAnim, attackAnim, currentAnim; // animation states
 
     private static final int FRAME_WIDTH = 80;
     private static final int FRAME_HEIGHT = 70;
     private static final int SPRITE_WIDTH = 80;
     private static final int SPRITE_HEIGHT = 70;
     
-    private static final int ATTACK_RANGE = 200;//start shooting at this
-    private static final int MIN_DISTANCE = 150;//don't get closer than this
+    private static final int ATTACK_RANGE = 200; // start shooting distance
+    private static final int MIN_DISTANCE = 150; // retreat distance
 
     private long lastShotTime;
-    private final long shootCooldown = 2500;//2.5s cooldown
+    private final long shootCooldown = 2500; // 2.5s between shots
 
     public Enemy(int startX, int startY, int speed) {
         this.x = startX;
@@ -29,23 +29,25 @@ public class Enemy {
         this.lastShotTime = System.currentTimeMillis();
 
         loadAnimations();
-        this.currentAnim = flyingAnim;//start at flying
+        this.currentAnim = flyingAnim; // start with flying
     }
 
     private void loadAnimations() {
         try {
+            // load flying animation
             BufferedImage flyingSheet = ImageIO.read(getClass().getResource("assets/FLYING.png"));
             System.out.println("FLYING.png loaded: " + flyingSheet.getWidth() + "x" + flyingSheet.getHeight());
             
-            if (flyingSheet.getHeight() != 70) {//error control
+            if (flyingSheet.getHeight() != 70) {
                 System.err.println("WARNING: FLYING.png has unexpected height! Expected 70, got " + flyingSheet.getHeight());
             }
             flyingAnim = new Animation(sliceSpriteSheet(flyingSheet, 4, "FLYING"), 10, true);
 
+            // load attack animation
             BufferedImage attackSheet = ImageIO.read(getClass().getResource("assets/ATTACK.png"));
             System.out.println("ATTACK.png loaded: " + attackSheet.getWidth() + "x" + attackSheet.getHeight());
             
-            if (attackSheet.getHeight() != 70) {//error control
+            if (attackSheet.getHeight() != 70) {
                 System.err.println("WARNING: ATTACK.png has unexpected height! Expected 70, got " + attackSheet.getHeight());
             }
             attackAnim = new Animation(sliceSpriteSheet(attackSheet, 8, "ATTACK"), 12, false);
@@ -56,7 +58,8 @@ public class Enemy {
             System.err.println("Error loading enemy sprites: " + e.getMessage());
             e.printStackTrace();
             
-            Image[] fallbackFrames = new Image[1];//fallback for enemy 
+            // create red placeholder
+            Image[] fallbackFrames = new Image[1];
             BufferedImage placeholder = new BufferedImage(FRAME_WIDTH, FRAME_HEIGHT, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = placeholder.createGraphics();
             g.setColor(Color.RED);
@@ -76,6 +79,7 @@ public class Enemy {
             for (int i = 0; i < frameCount; i++) {
                 int xPos = i * FRAME_WIDTH;
                 
+                // validate frame bounds
                 if (xPos + FRAME_WIDTH > sheet.getWidth()) {
                     System.err.println("ERROR: Frame " + i + " of " + sheetName + " exceeds sheet width!");
                     System.err.println("Trying to access x=" + xPos + " to " + (xPos + FRAME_WIDTH) + 
@@ -88,12 +92,14 @@ public class Enemy {
                     throw new RuntimeException("Invalid frame dimensions");
                 }
                 
+                // extract single frame
                 frames[i] = sheet.getSubimage(xPos, 0, FRAME_WIDTH, FRAME_HEIGHT);
             }
         } catch (Exception e) {
             System.err.println("Error slicing " + sheetName + ": " + e.getMessage());
             e.printStackTrace();
             
+            // create magenta error frames
             for (int i = 0; i < frameCount; i++) {
                 BufferedImage errorFrame = new BufferedImage(FRAME_WIDTH, FRAME_HEIGHT, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g = errorFrame.createGraphics();
@@ -107,56 +113,67 @@ public class Enemy {
         return frames;
     }
 
-    public void update(Player player, List<Fireball> fireballs) {//fireball direction
+    public void update(Player player, List<Fireball> fireballs) {
         int playerX = player.getX();
         int playerY = player.getY();
         
+        // calculate distance to player
         double distanceToPlayer = Math.sqrt(
             Math.pow(playerX - (x + SPRITE_WIDTH / 2), 2) + 
             Math.pow(playerY - (y + SPRITE_HEIGHT / 2), 2)
         );
         
+        // handle attack state
         if (state == State.ATTACK) {
-            if (currentAnim.isFinished()) {//animation swithching based on player 
+            if (currentAnim.isFinished()) {
                 if (distanceToPlayer > ATTACK_RANGE) {
-                    state = State.FLYING;
+                    state = State.FLYING; // return to flying
                     currentAnim = flyingAnim;
                     currentAnim.reset();
                 } else {
-                    state = State.IDLE;
+                    state = State.IDLE; // wait for cooldown
                     currentAnim = flyingAnim;
                 }
             }
-        } else if (state == State.IDLE) {
+        } 
+        // handle idle state
+        else if (state == State.IDLE) {
             if (distanceToPlayer > ATTACK_RANGE) {
-                state = State.FLYING;
+                state = State.FLYING; // chase player
                 currentAnim = flyingAnim;
             } else if (distanceToPlayer < MIN_DISTANCE) {
+                // retreat from player
                 double angle = Math.atan2(playerY - y, playerX - x);
                 x -= speed * Math.cos(angle) * 0.5;
                 y -= speed * Math.sin(angle) * 0.5;
             }
             
+            // check shooting cooldown
             long currentTime = System.currentTimeMillis();
-            if (currentTime - lastShotTime > shootCooldown) {//animatiom switch for attack based on cooldown
-                state = State.ATTACK;
+            if (currentTime - lastShotTime > shootCooldown) {
+                state = State.ATTACK; // start attack
                 currentAnim = attackAnim;
                 currentAnim.reset();
                 
+                // spawn fireball
                 if (fireballs.size() < 50) {
                     fireballs.add(new Fireball(x + SPRITE_WIDTH / 2, y + SPRITE_HEIGHT / 2, playerX, playerY, 6));
                 }
                 lastShotTime = currentTime;
             }
-        } else if (state == State.FLYING) {
+        } 
+        // handle flying state
+        else if (state == State.FLYING) {
             if (distanceToPlayer <= ATTACK_RANGE && distanceToPlayer >= MIN_DISTANCE) {
-                state = State.IDLE;
+                state = State.IDLE; // enter attack range
                 currentAnim = flyingAnim;
             } else if (distanceToPlayer < MIN_DISTANCE) {
+                // retreat from player
                 double angle = Math.atan2(playerY - y, playerX - x);
                 x -= speed * Math.cos(angle);
                 y -= speed * Math.sin(angle);
             } else {
+                // approach player
                 double angle = Math.atan2(playerY - y, playerX - x);
                 x += speed * Math.cos(angle);
                 y += speed * Math.sin(angle);

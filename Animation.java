@@ -32,15 +32,15 @@
 import java.awt.Image;
 
 public class Animation {
-    private Image[] frames;
-    private int currentFrame;
-    private long lastTime, frameDelay;
-    private boolean loop;
-    private boolean finished;
+    private Image[] frames; // all animation frames
+    private int currentFrame; // current frame index
+    private long lastTime, frameDelay; // timing control
+    private boolean loop; // repeat animation
+    private boolean finished; // animation complete
 
     public Animation(Image[] frames, int fps, boolean loop) {
         this.frames = frames;
-        this.frameDelay = 1000 / fps;
+        this.frameDelay = 1000 / fps; // ms per frame
         this.currentFrame = 0;
         this.lastTime = System.currentTimeMillis();
         this.loop = loop;
@@ -54,9 +54,9 @@ public class Animation {
             
             if (currentFrame >= frames.length) {
                 if (loop) {
-                    currentFrame = 0;
+                    currentFrame = 0; // restart animation
                 } else {
-                    currentFrame = frames.length - 1;
+                    currentFrame = frames.length - 1; // stay on last frame
                     finished = true;
                 }
             }

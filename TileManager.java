@@ -59,7 +59,7 @@ import java.io.IOException;
 public class TileManager {
     private final int TILE_WIDTH = 800;
     private final int TILE_HEIGHT = 600;
-    private BufferedImage grassTile;
+    private BufferedImage grassTile; // background tile image
     private GamePanel gp;
 
     public TileManager(GamePanel gp) {
@@ -69,16 +69,17 @@ public class TileManager {
 
     private void loadTiles() {
         try {
+            // load tilemap spritesheet
             BufferedImage tilemap = ImageIO.read(getClass().getResource("assets/Ground/Tilemap_Flat.png"));
             
-            // Extract the grass tile - using full 180x180 from tilemap
+            // extract grass tile (180x180)
             grassTile = tilemap.getSubimage(0, 0, 180, 180);
             
         } catch (IOException e) {
             System.err.println("Error loading tilemap: " + e.getMessage());
             e.printStackTrace();
 
-            // Fallback: create a solid green background
+            // create green fallback
             grassTile = new BufferedImage(TILE_WIDTH, TILE_HEIGHT, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = grassTile.createGraphics();
             g.setColor(new Color(145, 192, 59));
@@ -89,7 +90,7 @@ public class TileManager {
 
     public void draw(Graphics2D g2) {
         if (grassTile != null) {
-            // Simply stretch the single grass tile image to fill the entire screen
+            // stretch tile to screen
             g2.drawImage(grassTile, -30, -30, TILE_WIDTH+30, TILE_HEIGHT+30, null);
         }
     }

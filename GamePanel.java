@@ -22,10 +22,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     private Random random = new Random();
 
     private long lastSpawnTime;
-    private final long SPAWN_INTERVAL = 3000; 
-    private final int SPAWN_RADIUS = 250;
+    private final long SPAWN_INTERVAL = 3000; // 3s between spawns
+    private final int SPAWN_RADIUS = 250; // minimum spawn distance
     
-    // Health bar properties
+    // health bar dimensions
     private static final int HEALTH_BAR_HEIGHT = 20;
     private static final int HEALTH_BAR_Y = 10;
     private static final int HEALTH_BAR_X = 10;
@@ -74,9 +74,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
 
         while (gameThread != null) {
             try {
-                update();
-                repaint();
+                update(); // update game state
+                repaint(); // redraw screen
 
+                // sleep until next frame
                 double remaining = nextDrawTime - System.nanoTime();
                 long sleepMillis = (long) (remaining / 1_000_000);
                 if (sleepMillis > 0) Thread.sleep(sleepMillis);
@@ -89,6 +90,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     }
 
     private void update() {
+        // update player
         try {
             player.update(upPressed, downPressed, leftPressed, rightPressed, attack1Pressed, attack2Pressed);
         } catch (Exception e) {
@@ -96,10 +98,9 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             e.printStackTrace();
         }
         
-        // Spawn enemies
-        spawnEnemies();
+        spawnEnemies(); // spawn new enemies
 
-        // Update enemies
+        // update all enemies
         Iterator<Enemy> enemyIterator = enemies.iterator();
         while (enemyIterator.hasNext()) {
             Enemy enemy = enemyIterator.next();
@@ -111,14 +112,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
                 enemyIterator.remove();
             }
             
-            // Remove enemies that go too far off-screen
+            // remove distant enemies
             if (Math.abs(enemy.getX() - player.getX()) > 1500 || 
                 Math.abs(enemy.getY() - player.getY()) > 1500) {
                 enemyIterator.remove();
             }
         }
 
-        // Update fireballs and check collisions
+        // update fireballs and collisions
         Iterator<Fireball> fireballIterator = fireballs.iterator();
         while (fireballIterator.hasNext()) {
             Fireball fireball = fireballIterator.next();
@@ -126,12 +127,12 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             
             boolean shouldRemove = false;
             
-            // Remove if off-screen
+            // check if offscreen
             if (fireball.isOffScreen(SCREEN_WIDTH, SCREEN_HEIGHT)) {
                 shouldRemove = true;
             }
             
-            // Check collision with player
+            // check player collision
             Rectangle playerBounds = new Rectangle(
                 player.getX() - 48, 
                 player.getY() - 48, 
@@ -140,7 +141,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             );
             if (fireball.getBounds().intersects(playerBounds)) {
                 shouldRemove = true;
-                player.takeDamage(10); // Deal 10 damage to player
+                player.takeDamage(10); // deal 10 damage
                 System.out.println("Player hit by fireball!");
             }
             
@@ -149,14 +150,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             }
         }
         
-        // Limit maximum enemies
+        // limit max enemies
         if (enemies.size() > 20) {
             enemies.remove(0);
         }
     }
 
     private void spawnEnemies() {
-        // Don't spawn if we already have 10 enemies
+        // limit to 10 enemies
         if (enemies.size() >= 10) {
             return;
         }
@@ -167,7 +168,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             double distance;
             int attempts = 0;
 
-            // Find spawn position away from player
+            // find spawn away from player
             do {
                 spawnX = random.nextInt(SCREEN_WIDTH);
                 spawnY = random.nextInt(SCREEN_HEIGHT);
@@ -191,32 +192,32 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         Graphics2D g2 = (Graphics2D) g;
 
         try {
-            // Draw background
+            // draw background tiles
             if (tileManager != null) {
                 tileManager.draw(g2);
             }
 
-            // Draw player
+            // draw player sprite
             if (player != null) {
                 player.draw(g2);
             }
 
-            // Draw enemies
+            // draw all enemies
             for (Enemy enemy : enemies) {
                 enemy.draw(g2);
             }
 
-            // Draw fireballs
+            // draw all fireballs
             for (Fireball fireball : fireballs) {
                 fireball.draw(g2);
             }
 
-            // Draw health bar
+            // draw UI elements
             if (player != null) {
                 drawHealthBar(g2);
             }
             
-            // Debug info
+            // draw debug info
             g2.setColor(Color.WHITE);
             g2.drawString("Enemies: " + enemies.size(), 10, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 20);
             g2.drawString("Fireballs: " + fireballs.size(), 10, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 40);
@@ -232,21 +233,19 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     }
 
     private void drawHealthBar(Graphics2D g) {
-        // Calculate health ratio
+        // calculate health percentage
         double healthRatio = (double) player.getCurrentHealth() / player.getMaxHealth();
-        
-        // Calculate the width of the green health fill
         int fillWidth = (int) (HEALTH_BAR_WIDTH * healthRatio);
         
-        // Draw background (red - representing lost health)
+        // draw red background (lost health)
         g.setColor(Color.RED);
         g.fillRect(HEALTH_BAR_X, HEALTH_BAR_Y, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT);
         
-        // Draw foreground (green - representing current health)
+        // draw green foreground (current health)
         g.setColor(Color.GREEN);
         g.fillRect(HEALTH_BAR_X, HEALTH_BAR_Y, fillWidth, HEALTH_BAR_HEIGHT);
         
-        // Draw border
+        // draw black border
         g.setColor(Color.BLACK);
         g.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT);
     }
