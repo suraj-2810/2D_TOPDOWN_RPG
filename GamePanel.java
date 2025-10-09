@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-public class GamePanel extends JPanel implements Runnable, KeyListener {
+public class GamePanel extends JPanel implements Runnable, KeyListener, MouseListener {
     private Thread gameThread;
     private final int FPS = 60;
     
@@ -30,6 +30,16 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     private static final int HEALTH_BAR_Y = 10;
     private static final int HEALTH_BAR_X = 10;
     private static final int HEALTH_BAR_WIDTH = 200;
+    
+    // game over state
+    private boolean gameOver = false;
+    private float fadeAlpha = 0f; // 0 = transparent, 1 = opaque
+    private final float FADE_SPEED = 0.02f; // fade speed per frame
+    
+    // restart button
+    private Rectangle restartButton;
+    private final int BUTTON_WIDTH = 200;
+    private final int BUTTON_HEIGHT = 60;
 
     public GamePanel() {
         System.out.println("GamePanel: Constructor starting");
@@ -37,6 +47,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         setDoubleBuffered(true);
         setFocusable(true);
         addKeyListener(this);
+        addMouseListener(this);
 
         try {
             System.out.println("GamePanel: Creating Player");
@@ -55,6 +66,14 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             System.err.println("GamePanel: Error creating TileManager: " + e.getMessage());
             e.printStackTrace();
         }
+        
+        // initialize restart button position
+        restartButton = new Rectangle(
+            SCREEN_WIDTH / 2 - BUTTON_WIDTH / 2,
+            SCREEN_HEIGHT / 2 + 50,
+            BUTTON_WIDTH,
+            BUTTON_HEIGHT
+        );
         
         lastSpawnTime = System.currentTimeMillis();
         
@@ -90,12 +109,30 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     }
 
     private void update() {
+        if (gameOver) {
+            // fade to black
+            if (fadeAlpha < 1f) {
+                fadeAlpha += FADE_SPEED;
+                if (fadeAlpha > 1f) {
+                    fadeAlpha = 1f;
+                }
+            }
+            return; // stop updating game
+        }
+        
         // update player
         try {
             player.update(upPressed, downPressed, leftPressed, rightPressed, attack1Pressed, attack2Pressed);
         } catch (Exception e) {
             System.err.println("GamePanel: Error updating player: " + e.getMessage());
             e.printStackTrace();
+        }
+        
+        // check if player is dead
+        if (player.getCurrentHealth() <= 0) {
+            gameOver = true;
+            System.out.println("Game Over!");
+            return;
         }
         
         spawnEnemies(); // spawn new enemies
@@ -223,6 +260,11 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
             g2.drawString("Fireballs: " + fireballs.size(), 10, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 40);
             g2.drawString("Player: (" + player.getX() + ", " + player.getY() + ")", 10, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 60);
             g2.drawString("Health: " + player.getCurrentHealth() + "/" + player.getMaxHealth(), 10, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 80);
+            
+            // draw game over screen with fade
+            if (gameOver) {
+                drawGameOverScreen(g2);
+            }
 
         } catch (Exception e) {
             System.err.println("GamePanel: Error in paint: " + e.getMessage());
@@ -248,6 +290,56 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
         // draw black border
         g.setColor(Color.BLACK);
         g.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT);
+    }
+    
+    private void drawGameOverScreen(Graphics2D g2) {
+        // draw semi-transparent black overlay
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, fadeAlpha));
+        g2.setColor(Color.BLACK);
+        g2.fillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f)); // reset alpha
+        
+        // only show text and button when fade is complete
+        if (fadeAlpha >= 0.8f) {
+            // draw "GAME OVER" text
+            g2.setColor(Color.RED);
+            g2.setFont(new Font("Arial", Font.BOLD, 60));
+            FontMetrics fm = g2.getFontMetrics();
+            String gameOverText = "GAME OVER";
+            int textX = (SCREEN_WIDTH - fm.stringWidth(gameOverText)) / 2;
+            g2.drawString(gameOverText, textX, SCREEN_HEIGHT / 2 - 50);
+            
+            // draw restart button
+            g2.setColor(Color.GRAY);
+            g2.fillRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
+            g2.setColor(Color.WHITE);
+            g2.setStroke(new BasicStroke(3));
+            g2.drawRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
+            
+            // draw button text
+            g2.setFont(new Font("Arial", Font.BOLD, 24));
+            String buttonText = "RESTART";
+            FontMetrics bmFm = g2.getFontMetrics();
+            int buttonTextX = restartButton.x + (restartButton.width - bmFm.stringWidth(buttonText)) / 2;
+            int buttonTextY = restartButton.y + ((restartButton.height - bmFm.getHeight()) / 2) + bmFm.getAscent();
+            g2.drawString(buttonText, buttonTextX, buttonTextY);
+        }
+    }
+    
+    private void restartGame() {
+        System.out.println("Restarting game...");
+        gameOver = false;
+        fadeAlpha = 0f;
+        
+        // reset player
+        player = new Player(100, 100, 4);
+        
+        // clear enemies and fireballs
+        enemies.clear();
+        fireballs.clear();
+        
+        lastSpawnTime = System.currentTimeMillis();
+        System.out.println("Game restarted!");
     }
 
     public void keyPressed(KeyEvent e) {
@@ -281,4 +373,23 @@ public class GamePanel extends JPanel implements Runnable, KeyListener {
     }
 
     public void keyTyped(KeyEvent e) {}
+    
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        if (gameOver && restartButton.contains(e.getPoint())) {
+            restartGame();
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {}
+
+    @Override
+    public void mouseReleased(MouseEvent e) {}
+
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+
+    @Override
+    public void mouseExited(MouseEvent e) {}
 }
