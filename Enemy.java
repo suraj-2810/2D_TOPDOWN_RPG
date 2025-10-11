@@ -15,6 +15,10 @@ public class Enemy {
     private static final int FRAME_HEIGHT = 70;
     private static final int SPRITE_WIDTH = 80;
     private static final int SPRITE_HEIGHT = 70;
+
+    // health system
+    private int maxHealth;
+    private int currentHealth;
     
     private static final int ATTACK_RANGE = 200; // start shooting distance
     private static final int MIN_DISTANCE = 150; // retreat distance
@@ -28,8 +32,31 @@ public class Enemy {
         this.speed = speed;
         this.lastShotTime = System.currentTimeMillis();
 
+        // initialize health values
+        this.maxHealth = 100;
+        this.currentHealth = 100;
+
         loadAnimations();
         this.currentAnim = flyingAnim; // start with flying
+    }
+
+    // get max health
+    public int getMaxHealth {
+        return maxHealth;
+    }
+
+    // get current health
+    public int getCurrentHealth {
+        return currentHealth;
+    }
+
+    // damage mechanics
+    public void takeDamage(int damage) {
+        this.currentHealth -= damage;
+        if (this.currentHealth <= 0) {
+            this.currentHealth = 0;
+        }
+        System.out.println("Player took"+ damage +"damage. health:"+ currentHealth +"/"+ maxHealth);
     }
 
     private void loadAnimations() {
