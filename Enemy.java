@@ -41,12 +41,12 @@ public class Enemy {
     }
 
     // get max health
-    public int getMaxHealth {
+    public int getMaxHealth() {
         return maxHealth;
     }
 
     // get current health
-    public int getCurrentHealth {
+    public int getCurrentHealth() {
         return currentHealth;
     }
 
