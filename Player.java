@@ -28,6 +28,13 @@ public class Player {
     private int maxHealth;
     private int currentHealth;
     
+    // attack system
+    private boolean isAttacking = false;
+    private int attackDamage = 100; // one-shot damage
+    private static final int ATTACK_RANGE = 80; // attack reach distance
+    private static final int ATTACK_WIDTH = 100; // attack hitbox width
+    private static final int ATTACK_HEIGHT = 80; // attack hitbox height
+    
     public Player(int startX, int startY, int speed) {
         this.x = startX;
         this.y = startY;
@@ -62,6 +69,32 @@ public class Player {
 
     public Rectangle getBounds() {
         return new Rectangle(x, y, SPRITE_WIDTH, SPRITE_HEIGHT);
+    }
+    
+    // get attack hitbox when attacking
+    public Rectangle getAttackHitbox() {
+        if (!isAttacking) {
+            return new Rectangle(0, 0, 0, 0); // no hitbox when not attacking
+        }
+        
+        int hitboxX;
+        if (facingLeft) {
+            hitboxX = x - ATTACK_RANGE; // hitbox to the left
+        } else {
+            hitboxX = x + SPRITE_WIDTH; // hitbox to the right
+        }
+        
+        int hitboxY = y + (SPRITE_HEIGHT - ATTACK_HEIGHT) / 2; // center vertically
+        
+        return new Rectangle(hitboxX, hitboxY, ATTACK_WIDTH, ATTACK_HEIGHT);
+    }
+    
+    public boolean isAttacking() {
+        return isAttacking;
+    }
+    
+    public int getAttackDamage() {
+        return attackDamage;
     }
     
     // get center x position
@@ -126,6 +159,7 @@ public class Player {
             if (currentAnim.isFinished()) {
                 state = State.IDLE; // return to idle
                 currentAnim = facingLeft ? idleLeftAnim : idleAnim;
+                isAttacking = false; // attack ended
             }
         } else {
             // handle new input
@@ -133,14 +167,16 @@ public class Player {
                 state = State.ATTACK1; // start attack 1
                 currentAnim = facingLeft ? attack1LeftAnim : attack1Anim;
                 currentAnim.reset();
+                isAttacking = true; // attack started
             } else if (attack2) {
                 state = State.ATTACK2; // start attack 2
                 currentAnim = facingLeft ? attack2LeftAnim : attack2Anim;
                 currentAnim.reset();
+                isAttacking = true; // attack started
             } else if (up || down || left || right) {
                 state = State.RUNNING; // start running
                 
-                // Update facing direction based on left/right input
+                // Update facing direction
                 if (left) {
                     facingLeft = true;
                 } else if (right) {
@@ -180,5 +216,12 @@ public class Player {
 
     public void draw(Graphics2D g2) {
         g2.drawImage(currentAnim.getCurrentFrame(), x, y, 96, 96, null);
+        
+        //hitbox for attack
+        if (isAttacking) {
+            g2.setColor(new Color(255, 0, 0, 100)); // semi-transparent red
+            Rectangle hitbox = getAttackHitbox();
+            g2.fillRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+        }
     }
 }

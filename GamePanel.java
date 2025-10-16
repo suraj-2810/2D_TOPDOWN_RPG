@@ -135,6 +135,22 @@ public class GamePanel extends JPanel implements Runnable, KeyListener, MouseLis
             return;
         }
         
+        // check player attack hits enemies
+        if (player.isAttacking()) {
+            Rectangle attackHitbox = player.getAttackHitbox();
+            Iterator<Enemy> enemyIter = enemies.iterator();
+            while (enemyIter.hasNext()) {
+                Enemy enemy = enemyIter.next();
+                if (attackHitbox.intersects(enemy.getBounds())) {
+                    enemy.takeDamage(player.getAttackDamage()); // deal damage
+                    if (enemy.getCurrentHealth() <= 0) {
+                        enemyIter.remove(); // remove dead enemy
+                        System.out.println("Enemy killed!");
+                    }
+                }
+            }
+        }
+        
         spawnEnemies(); // spawn new enemies
 
         // update all enemies
