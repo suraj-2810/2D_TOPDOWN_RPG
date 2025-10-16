@@ -171,10 +171,10 @@ public class GamePanel extends JPanel implements Runnable, KeyListener, MouseLis
             
             // check player collision
             Rectangle playerBounds = new Rectangle(
-                player.getX() - 48, 
-                player.getY() - 48, 
-                96, 
-                96
+                player.getX() - 20, 
+                player.getY() - 30, 
+                36, 
+                36
             );
             if (fireball.getBounds().intersects(playerBounds)) {
                 shouldRemove = true;
