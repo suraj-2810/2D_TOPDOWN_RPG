@@ -25,6 +25,9 @@ public class GamePanel extends JPanel implements Runnable, KeyListener, MouseLis
     private final long SPAWN_INTERVAL = 3000; // 3s between spawns
     private final int SPAWN_RADIUS = 250; // minimum spawn distance
     
+    // kill counter
+    private int enemiesKilled = 0;
+    
     // health bar dimensions
     private static final int HEALTH_BAR_HEIGHT = 20;
     private static final int HEALTH_BAR_Y = 10;
@@ -145,7 +148,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener, MouseLis
                     enemy.takeDamage(player.getAttackDamage()); // deal damage
                     if (enemy.getCurrentHealth() <= 0) {
                         enemyIter.remove(); // remove dead enemy
-                        System.out.println("Enemy killed!");
+                        enemiesKilled++; // increment kill counter
+                        System.out.println("Enemy killed! Total kills: " + enemiesKilled);
                     }
                 }
             }
@@ -268,6 +272,7 @@ public class GamePanel extends JPanel implements Runnable, KeyListener, MouseLis
             // draw UI elements
             if (player != null) {
                 drawHealthBar(g2);
+                drawKillCounter(g2);
             }
             
             // draw debug info
@@ -306,6 +311,16 @@ public class GamePanel extends JPanel implements Runnable, KeyListener, MouseLis
         // draw black border
         g.setColor(Color.BLACK);
         g.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT);
+    }
+    
+    private void drawKillCounter(Graphics2D g) {
+        // draw kill counter in top right
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 24));
+        String killText = "Kills: " + enemiesKilled;
+        FontMetrics fm = g.getFontMetrics();
+        int textWidth = fm.stringWidth(killText);
+        g.drawString(killText, SCREEN_WIDTH - textWidth - 20, 35);
     }
     
     private void drawGameOverScreen(Graphics2D g2) {
