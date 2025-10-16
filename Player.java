@@ -8,7 +8,15 @@ public class Player {
     private State state = State.IDLE;
 
     private int x, y, speed; // position and movement
-    private Animation idleAnim, runAnim, attack1Anim, attack2Anim, currentAnim;
+    
+    // Right-facing animations
+    private Animation idleAnim, runAnim, attack1Anim, attack2Anim;
+    
+    // Left-facing animations
+    private Animation idleLeftAnim, runLeftAnim, attack1LeftAnim, attack2LeftAnim;
+    
+    private Animation currentAnim;
+    private boolean facingLeft = false; // track current direction
 
     private static final int FRAME_SIZE = 192;
     private static final int SPRITE_WIDTH = 96;
@@ -68,23 +76,36 @@ public class Player {
 
     private void loadAnimations() {
         try {
-            // load idle animation
+            // Load right-facing animations
             BufferedImage idleSheet = ImageIO.read(getClass().getResource("assets/Warrior_Idle.png"));
             idleAnim = new Animation(sliceSpriteSheet(idleSheet, 8), 10, true);
 
-            // load running animation
             BufferedImage runSheet = ImageIO.read(getClass().getResource("assets/Warrior_Run.png"));
             runAnim = new Animation(sliceSpriteSheet(runSheet, 6), 12, true);
 
-            // load attack 1 animation
             BufferedImage atk1Sheet = ImageIO.read(getClass().getResource("assets/Warrior_Attack1.png"));
             attack1Anim = new Animation(sliceSpriteSheet(atk1Sheet, 4), 8, false);
 
-            // load attack 2 animation
             BufferedImage atk2Sheet = ImageIO.read(getClass().getResource("assets/Warrior_Attack2.png"));
             attack2Anim = new Animation(sliceSpriteSheet(atk2Sheet, 4), 8, false);
 
+            // Load left-facing animations
+            BufferedImage idleLeftSheet = ImageIO.read(getClass().getResource("assets/Warrior_Idle_Left.png"));
+            idleLeftAnim = new Animation(sliceSpriteSheet(idleLeftSheet, 8), 10, true);
+
+            BufferedImage runLeftSheet = ImageIO.read(getClass().getResource("assets/Warrior_Run_Left.png"));
+            runLeftAnim = new Animation(sliceSpriteSheet(runLeftSheet, 6), 12, true);
+
+            BufferedImage atk1LeftSheet = ImageIO.read(getClass().getResource("assets/Warrior_Attack1_Left.png"));
+            attack1LeftAnim = new Animation(sliceSpriteSheet(atk1LeftSheet, 4), 8, false);
+
+            BufferedImage atk2LeftSheet = ImageIO.read(getClass().getResource("assets/Warrior_Attack2_Left.png"));
+            attack2LeftAnim = new Animation(sliceSpriteSheet(atk2LeftSheet, 4), 8, false);
+
+            System.out.println("All player animations loaded successfully");
+
         } catch (IOException e) {
+            System.err.println("Error loading player sprites: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -104,21 +125,29 @@ public class Player {
         if (state == State.ATTACK1 || state == State.ATTACK2) {
             if (currentAnim.isFinished()) {
                 state = State.IDLE; // return to idle
-                currentAnim = idleAnim;
+                currentAnim = facingLeft ? idleLeftAnim : idleAnim;
             }
         } else {
             // handle new input
             if (attack1) {
                 state = State.ATTACK1; // start attack 1
-                currentAnim = attack1Anim;
+                currentAnim = facingLeft ? attack1LeftAnim : attack1Anim;
                 currentAnim.reset();
             } else if (attack2) {
                 state = State.ATTACK2; // start attack 2
-                currentAnim = attack2Anim;
+                currentAnim = facingLeft ? attack2LeftAnim : attack2Anim;
                 currentAnim.reset();
             } else if (up || down || left || right) {
                 state = State.RUNNING; // start running
-                currentAnim = runAnim;
+                
+                // Update facing direction based on left/right input
+                if (left) {
+                    facingLeft = true;
+                } else if (right) {
+                    facingLeft = false;
+                }
+                
+                currentAnim = facingLeft ? runLeftAnim : runAnim;
 
                 int dx = 0, dy = 0;
                 if (up) dy -= speed;
@@ -142,7 +171,7 @@ public class Player {
                 if (y > SCREEN_HEIGHT - SPRITE_HEIGHT) y = SCREEN_HEIGHT - SPRITE_HEIGHT;
             } else {
                 state = State.IDLE; // no input, idle
-                currentAnim = idleAnim;
+                currentAnim = facingLeft ? idleLeftAnim : idleAnim;
             }
         }
 
