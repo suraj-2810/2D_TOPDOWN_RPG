@@ -2,7 +2,7 @@
 
 A 2D top-down action RPG built with Java Swing. Control a warrior battling waves of flying enemies — dodge projectiles, strike back, and survive as long as possible!
 
-<img width="801" height="571" alt="game screenshot" src="https://github.com/user-attachments/assets/074b71af-9862-44d2-a420-6a45d2bbbc89" />
+<img width="801" height="572" alt="current" src="https://github.com/user-attachments/assets/2b719fe4-5dfa-4fd6-b1b7-473a31c2605f" />
 
 ## 🧩 Features
 
