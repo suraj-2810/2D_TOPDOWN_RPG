@@ -332,6 +332,24 @@ public class GamePanel extends JPanel implements Runnable, KeyListener, MouseLis
         
         // only show text and button when fade is complete
         if (fadeAlpha >= 0.8f) {
+            if (enemiesKilled < 10) {
+                // draw "GAME OVER" text
+                g2.setColor(Color.RED);
+                g2.setFont(new Font("Arial", Font.BOLD, 60));
+                FontMetrics fm = g2.getFontMetrics();
+                String gameOverText = "NOT EVEN 10 KILLS";
+                int textX = (SCREEN_WIDTH - fm.stringWidth(gameOverText)) / 2;
+                g2.drawString(gameOverText, textX, SCREEN_HEIGHT / 2 - 50);
+            }
+            else if (enemiesKilled > 10 && enemiesKilled < 20) {
+                g2.setColor(Color.RED);
+                g2.setFont(new Font("Arial", Font.BOLD, 60));
+                FontMetrics fm = g2.getFontMetrics();
+                String gameOverText = "BARELY 10 KILLS";
+                int textX = (SCREEN_WIDTH - fm.stringWidth(gameOverText)) / 2;
+                g2.drawString(gameOverText, textX, SCREEN_HEIGHT / 2 - 50);
+            }
+            else {
             // draw "GAME OVER" text
             g2.setColor(Color.RED);
             g2.setFont(new Font("Arial", Font.BOLD, 60));
@@ -339,7 +357,8 @@ public class GamePanel extends JPanel implements Runnable, KeyListener, MouseLis
             String gameOverText = "GAME OVER";
             int textX = (SCREEN_WIDTH - fm.stringWidth(gameOverText)) / 2;
             g2.drawString(gameOverText, textX, SCREEN_HEIGHT / 2 - 50);
-            
+            }
+
             // draw restart button
             g2.setColor(Color.GRAY);
             g2.fillRect(restartButton.x, restartButton.y, restartButton.width, restartButton.height);
